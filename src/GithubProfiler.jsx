@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
-import DisplayGithub from './DisplayGithub';
+import DisplayProfileDetails from './DisplayProfileDetails';
+import Styles from './Styles';
+import GetRequest from './utilities/GetRequest';
 
-const CardDetail = () => {
+const GithubProfiler = () => {
 
-    const [data, setData] = useState({});
+    const [profile, setProfile] = useState({});
     const [username, setUsername] = useState("")
     const [repositories, setRepositories] = useState([])
 
@@ -11,32 +13,32 @@ const CardDetail = () => {
         setUsername(e.target.value);
     }
 
-    const _searchHandler = async e => {
+    const _searchHandler = async () => {
+        if (!username) {
+            return;
+        }
+
         var githubUrl = `https://api.github.com/users/${username}`;
-        e.preventDefault();
 
-        const card = await fetch(githubUrl);
-        const cardDetailJson = await card.json();
-        // console.log(cardDetailJson);
+        const profileDetails = await GetRequest(githubUrl);
+        if (profileDetails) {
+            setProfile(profileDetails);
+        }
 
-        const repositories = await fetch(cardDetailJson.repos_url)
-        const repoJson = await repositories.json();
-        // console.log(repoJson)
-
-        if (cardDetailJson) {
-            setData(cardDetailJson);
-            setRepositories(repoJson);
+        const repositories = await GetRequest(profileDetails.repos_url)
+        if (repositories) {
+            setRepositories(repositories);
         }
     };
 
     return (
         <>
-            <div style={{ padding: 20,display:'flex',justifyContent:'center' }}>
+            <div style={Styles}>
                 <div className="ui left aligned category search" >
                     <div className="ui icon input">
                         <i className="search icon">
                         </i>
-                        <input 
+                        <input
                             className="prompt"
                             placeholder="Enter username.."
                             type="text"
@@ -44,8 +46,8 @@ const CardDetail = () => {
                             onChange={_onChangeHandler}
                         />
                     </div>
-                    <button 
-                    className="ui primary button"
+                    <button
+                        className="ui primary button"
                         type="submit"
                         onClick={_searchHandler}
                     >
@@ -53,12 +55,10 @@ const CardDetail = () => {
                         Search
                     </button>
                 </div>
-
-
             </div>
-            <DisplayGithub data={data} repositories={repositories} />
+            <DisplayProfileDetails profile={profile} repositories={repositories} />
         </>
     )
 }
 
-export default CardDetail;
+export default GithubProfiler;
